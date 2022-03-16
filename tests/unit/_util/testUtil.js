@@ -20,17 +20,34 @@ export default class TestUtil {
         })
     }
 
+    static generateWritableStream(onData) {
+        return new Writable({
+            write(chunk, enc, cb) {
+                onData(chunk)
+
+                cb(null, chunk)
+            }
+        })
+    }
+
     static defaultHandleParams() {
+        const requestStream = TestUtil.generateReadableStream(['body da requisicao'])
+        const response = TestUtil.generateWritableStream(() => {})
         const data = {
-            request: {
+            request: Object.assign(requestStream, {
                 headers: {},
                 method: '',
                 url: ''
-            },
-            response: {
+            }),
+            response: Object.assign(response, {
                 writeHead: jest.fn(),
                 end: jest.fn()
-            }
+            })
+        }
+
+        return {
+            values: () => Object.values(data),
+            ...data,
         }
     }
 }
